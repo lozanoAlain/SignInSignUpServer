@@ -11,9 +11,10 @@ package dataModel;
  */
 public class SignableFactory {
 
-    public void getSignable() throws Exception{
+    public Signable getSignable() throws Exception{
         Signable signable;
         signable = new SignableImplementation();
+        return signable;
     }
 
 }
