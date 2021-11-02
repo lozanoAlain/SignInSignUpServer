@@ -87,7 +87,10 @@ public class SignableImplementation implements Signable {
         stmt.setInt(5, 1);
         stmt.setString(6, user.getPassword());
         
-        stmt.executeUpdate();
+        
+        if(stmt.executeUpdate() == 0){
+            throw new ExistUserException();
+        }
        
         if(stmt != null){
             stmt.close();
