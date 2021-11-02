@@ -18,14 +18,14 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.omg.CORBA.UserException;
+import static serverApplication.ServerApplication.decrement;
+import static serverApplication.ServerApplication.increment;
 
 /**
  *
- * @author 2dam
+ * @author Alain Lozano, Ilia Consuegra
  */
 public class ClientThread extends Thread {
 
@@ -40,31 +40,31 @@ public class ClientThread extends Thread {
     public void run() {
         ObjectInputStream ois;
         ObjectOutputStream oos;
-        try { 
+        try {
             ois = new ObjectInputStream(sc.getInputStream());
             SignableFactory signableFactory = new SignableFactory();
             Signable signable = signableFactory.getSignable();
             //  DatatEncapsulation data = new DataEncapsulation();
-            while (true) {
-                data = (DataEncapsulation) ois.readObject();
-                User user = null;
-                switch (data.getMessage().ordinal()) {
-                    case 0:
-                        user = signable.signIn(data.getUser());
-                        data.setUser(user);
-                        break;
-                    case 1:
-                        signable.signUp(data.getUser());
-                        data.setUser(user);
-                        break;
-                    default:
-                        break;       
-                }
-                ois.close();
-                this.interrupt();
 
+            data = (DataEncapsulation) ois.readObject();
+            increment();
+            User user = null;
+            switch (data.getMessage().ordinal()) {
+                case 0:
+                    user = signable.signIn(data.getUser());
+                    //Se queda esperando
+                    data.setUser(user);
+                    break;
+                case 1:
+                    signable.signUp(data.getUser());
+                    data.setUser(user);
+                    break;
+                default:
+                    break;
             }
+            ois.close();
             
+
         } catch (IOException ex) {
             data.setMessage(MessageEnum.CONNECTION_ERROR);
             logger.warning(ex.getMessage());
@@ -77,12 +77,12 @@ public class ClientThread extends Thread {
         } catch (ConnectionErrorException ex) {
             data.setMessage(MessageEnum.CONNECTION_ERROR);
             logger.warning(ex.getMessage());
-        } catch (ExistUserException ex){
+        } catch (ExistUserException ex) {
             data.setMessage(MessageEnum.SIGN_UP_ERROR_USER);
             logger.warning(ex.getMessage());
-        } catch (UserNotExistException ex) { 
+        } catch (UserNotExistException ex) {
             data.setMessage(MessageEnum.SIGN_IN_ERROR_USER);
-            logger.warning(ex.getMessage()); 
+            logger.warning(ex.getMessage());
         } catch (Exception ex) {
             data.setMessage(MessageEnum.CONNECTION_ERROR);
             logger.warning(ex.getMessage());
@@ -90,11 +90,14 @@ public class ClientThread extends Thread {
         try {
             oos = new ObjectOutputStream(sc.getOutputStream());
             oos.writeObject(data);
+            decrement();
             oos.close();
+            sc.close();
+            this.interrupt();
         } catch (IOException ex) {
             Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
     }
 
 }

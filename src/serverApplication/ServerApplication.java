@@ -21,6 +21,7 @@ import logic.ClientThread;
  */
 public class ServerApplication {
 
+    private static int accepted = 0;
     /**
      * @param args the command line arguments
      */
@@ -29,21 +30,29 @@ public class ServerApplication {
             // TODO code application logic here
             Socket sc=null;
             DataEncapsulation data;
-            int maxAccept = Integer.valueOf(ResourceBundle.getBundle("dataModel.ServerConfiguration").getString("Port"));
-            
+            final int maxAccept = Integer.valueOf(ResourceBundle.getBundle("dataModel.ServerConfiguration").getString("maxServerConnections"));
             ServerSocket ss= new ServerSocket(Integer.valueOf(ResourceBundle.getBundle("dataModel.ServerConfiguration").getString("Port")));
-            while(maxAccept<10){
+           
+            
+            while(true){
                 sc=ss.accept();
-                
-                data= new DataEncapsulation();
-                ClientThread clientThread = new ClientThread(sc);
-                clientThread.start();
-                
+                if(accepted < 10){
+                    data= new DataEncapsulation();
+                    ClientThread clientThread = new ClientThread(sc);
+                    clientThread.start();
+                }    
             }
         } catch (IOException ex) {
             Logger.getLogger(ServerApplication.class.getName()).log(Level.SEVERE, null, ex);
         }
         
     } 
+
+    public static synchronized void increment() {
+        accepted++;
+    }
+    public static synchronized void decrement() {
+        accepted--;
+    }
     
 }
