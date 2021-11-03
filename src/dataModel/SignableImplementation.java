@@ -22,7 +22,7 @@ import java.sql.ResultSet;
 public class SignableImplementation implements Signable {
 
     final String SIGNIN = "SELECT * FROM user WHERE login = ?";
-    final String SIGNUP = "INSERT INTO user (id,login,email,fullName,enumStatus,enumPrivilege,userPassword,lastPasswordChange) values (null,?,?,?,?,?,?,now())";
+    final String SIGNUP = "INSERT INTO user (id,login,email,fullName,enumStatus,enumPrivilege,userPassword,lastPasswordChange) values (default,?,?,?,?,?,?,now())";
     private Connection con;
     private PreparedStatement stmt;
 
@@ -79,19 +79,24 @@ public class SignableImplementation implements Signable {
 
         con = getConnection();
 
-        stmt = con.prepareStatement(SIGNIN);
-        stmt.setInt(1, user.getId());
-        stmt.setString(2, user.getLogin());
-        stmt.setString(3, user.getEmail());
-        stmt.setString(4, user.getFullName());
+        stmt = con.prepareStatement(SIGNUP);
+        stmt.setString(1, user.getLogin());
+        stmt.setString(2, user.getEmail());
+        stmt.setString(3, user.getFullName());
+        stmt.setInt(4, 1);
         stmt.setInt(5, 1);
-        stmt.setInt(6, 1);
-        stmt.setString(7, user.getPassword());
+        stmt.setString(6, user.getPassword());
         
-        
-        if(stmt.executeUpdate() == 0){
+        try{
+            stmt.executeUpdate();
+        }catch(Exception ex){
             throw new ExistUserException();
         }
+        
+        /*if( == 0){
+            
+        }
+*/
        
         if(stmt != null){
             stmt.close();
