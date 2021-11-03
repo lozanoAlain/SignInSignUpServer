@@ -31,7 +31,7 @@ public class ClientThread extends Thread {
 
     private final static Logger logger = Logger.getLogger(ClientThread.class.getName());
     private Socket sc = null;
-    private DataEncapsulation data = null;
+    private DataEncapsulation data;
 
     public ClientThread(Socket sc) {
         this.sc = sc;
@@ -47,15 +47,16 @@ public class ClientThread extends Thread {
             //  DatatEncapsulation data = new DataEncapsulation();
 
             data = (DataEncapsulation) ois.readObject();
+            
             increment();
             User user = null;
-            switch (data.getMessage().ordinal()) {
-                case 0:
+            switch (data.getMessage()) {
+                case SIGN_IN:
                     user = signable.signIn(data.getUser());
                     //Se queda esperando
                     data.setUser(user);
                     break;
-                case 1:
+                case SIGN_UP:
                     signable.signUp(data.getUser());
                     data.setUser(user);
                     break;

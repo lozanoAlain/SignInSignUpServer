@@ -29,21 +29,23 @@ public class ServerApplication {
         try {
             // TODO code application logic here
             Socket sc=null;
-            DataEncapsulation data;
-            final int maxAccept = Integer.valueOf(ResourceBundle.getBundle("dataModel.ServerConfiguration").getString("maxServerConnections"));
-            ServerSocket ss= new ServerSocket(Integer.valueOf(ResourceBundle.getBundle("dataModel.ServerConfiguration").getString("Port")));
-           
             
+            final int maxAccept = Integer.valueOf(ResourceBundle.getBundle("dataModel.ServerConfiguration").getString("maxServerConnections"));
+            String port = (ResourceBundle.getBundle("dataModel.ServerConfiguration").getString("Port"));
+            ServerSocket ss= new ServerSocket(Integer.valueOf(port));
+            
+           
+            Logger.getLogger("serverApplication").info("Escuvhando por el puerto: " + port);
             while(true){
                 sc=ss.accept();
                 if(accepted < 10){
-                    data= new DataEncapsulation();
                     ClientThread clientThread = new ClientThread(sc);
                     clientThread.start();
                 }    
             }
         } catch (IOException ex) {
-            Logger.getLogger(ServerApplication.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ServerApplication.class.getName()).log(Level.SEVERE, null, ex.getMessage());
+            
         }
         
     } 
