@@ -75,19 +75,23 @@ public class SignableImplementation implements Signable {
      */
     @Override
     public void signUp(User user) throws ExistUserException, ConnectionErrorException, Exception {
- //final String SIGNUP = "INSERT INTO user (id,login,email,fullName,enumStatus,enumPrivilege,userPassword,lastPasswordChange) values (null,?,?,?,?,?,?,now())";
+ //final String SIGNUP = "INSERT INTO user (id,login,email,fullName,enumStatus,enumPrivilege,userPassword,lastPasswordChange) values (?,?,?,?,?,?,?,now())";
 
         con = getConnection();
 
         stmt = con.prepareStatement(SIGNIN);
-        stmt.setString(1, user.getLogin());
-        stmt.setString(2, user.getEmail());
-        stmt.setString(3, user.getFullName());
-        stmt.setInt(4, 1);
+        stmt.setInt(1, user.getId());
+        stmt.setString(2, user.getLogin());
+        stmt.setString(3, user.getEmail());
+        stmt.setString(4, user.getFullName());
         stmt.setInt(5, 1);
-        stmt.setString(6, user.getPassword());
+        stmt.setInt(6, 1);
+        stmt.setString(7, user.getPassword());
         
-        stmt.executeUpdate();
+        
+        if(stmt.executeUpdate() == 0){
+            throw new ExistUserException();
+        }
        
         if(stmt != null){
             stmt.close();
