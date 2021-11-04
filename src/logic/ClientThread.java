@@ -38,8 +38,8 @@ public class ClientThread extends Thread {
     }
 
     public void run() {
-        ObjectInputStream ois;
-        ObjectOutputStream oos;
+        ObjectInputStream ois = null;
+        ObjectOutputStream oos = null;
         try {
             ois = new ObjectInputStream(sc.getInputStream());
             SignableFactory signableFactory = new SignableFactory();
@@ -47,7 +47,7 @@ public class ClientThread extends Thread {
             //  DatatEncapsulation data = new DataEncapsulation();
 
             data = (DataEncapsulation) ois.readObject();
-            
+
             increment();
             User user = null;
             switch (data.getMessage()) {
@@ -55,16 +55,16 @@ public class ClientThread extends Thread {
                     user = signable.signIn(data.getUser());
                     //Se queda esperando
                     data.setUser(user);
+                    data.setMessage(MessageEnum.SIGN_IN_OK);
                     break;
                 case SIGN_UP:
                     signable.signUp(data.getUser());
                     data.setUser(user);
+                    data.setMessage(MessageEnum.SIGN_UP_OK);
                     break;
                 default:
                     break;
             }
-            ois.close();
-            
 
         } catch (IOException ex) {
             data.setMessage(MessageEnum.CONNECTION_ERROR);
@@ -92,11 +92,12 @@ public class ClientThread extends Thread {
             oos = new ObjectOutputStream(sc.getOutputStream());
             oos.writeObject(data);
             decrement();
+            ois.close();
             oos.close();
             sc.close();
             this.interrupt();
         } catch (IOException ex) {
-            Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex.getMessage());
         }
 
     }
