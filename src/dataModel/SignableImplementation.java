@@ -54,8 +54,8 @@ public class SignableImplementation implements Signable {
             userAux.setStatus(UserStatus.values()[auxStatus]);
             int auxPrivilege = rs.getInt("enumPrivilege");
             userAux.setPrivilege(UserPrivilege.values()[auxPrivilege]);
-            userAux.setPassword(rs.getString("password"));
-            userAux.setLastPasswordChange(rs.getTimestamp("lastPasswordChanged").toLocalDateTime());
+            userAux.setPassword(rs.getString("userPassword"));
+            userAux.setLastPasswordChange(rs.getTimestamp("lastPasswordChange").toLocalDateTime());
         }
         rs.close();        
         if(stmt != null){
