@@ -14,6 +14,8 @@ import exceptions.UserNotExistException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 /**
  *
@@ -23,6 +25,9 @@ public class SignableImplementation implements Signable {
 
     final String SIGNIN = "SELECT * FROM user WHERE login = ?";
     final String SIGNUP = "INSERT INTO user (id,login,email,fullName,enumStatus,enumPrivilege,userPassword,lastPasswordChange) values (default,?,?,?,?,?,?,now())";
+    final String SIGNININSERT = "INSERT INTO signin (lastSignIn,userId,signinId) values (now(),?,default)";
+    final String SIGNINCOUNT = "SELECT COUNT(*) FROM signin WHERE userId=?";
+    final String SIGNINSELECTMINDATE = "SELECT * FROM signin WHERE lastSignIn=(Select min(lastSignIn) from signin WHERE userId=?)";
     private Connection con;
     private PreparedStatement stmt;
 
@@ -57,11 +62,34 @@ public class SignableImplementation implements Signable {
             userAux.setPassword(rs.getString("userPassword"));
             userAux.setLastPasswordChange(rs.getTimestamp("lastPasswordChange").toLocalDateTime());
         }
-        rs.close();        
-        if(stmt != null){
+        rs.close();
+
+        stmt = con.prepareStatement(SIGNINCOUNT);
+        stmt.setInt(1, userAux.getId());
+        rs = stmt.executeQuery();
+        if (rs.next()) {
+            if (rs.getInt("count(*)") >= 2) {
+                stmt = con.prepareStatement(SIGNINSELECTMINDATE, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+                stmt.setInt(1, userAux.getId());
+                rs = stmt.executeQuery();
+                rs.first();
+                rs.updateTimestamp("lastSignIn", Timestamp.valueOf(LocalDateTime.now()));
+                rs.updateRow();
+            } else {
+                stmt = con.prepareStatement(SIGNININSERT);
+                stmt.setInt(1, userAux.getId());
+                stmt.executeUpdate();
+            }
+        } else {
+            stmt = con.prepareStatement(SIGNININSERT);
+            stmt.setInt(1, userAux.getId());
+            stmt.executeUpdate();
+        }
+
+        if (stmt != null) {
             stmt.close();
         }
-        
+
         returnConnection(con);
         return userAux;
 
@@ -75,8 +103,7 @@ public class SignableImplementation implements Signable {
      */
     @Override
     public void signUp(User user) throws ExistUserException, ConnectionErrorException, Exception {
- //final String SIGNUP = "INSERT INTO user (id,login,email,fullName,enumStatus,enumPrivilege,userPassword,lastPasswordChange) values (?,?,?,?,?,?,?,now())";
-
+    //final String SIGNUP = "INSERT INTO user (id,login,email,fullName,enumStatus,enumPrivilege,userPassword,lastPasswordChange) values (default,?,?,?,?,?,?,now())";
         con = getConnection();
 
         stmt = con.prepareStatement(SIGNUP);
@@ -86,23 +113,21 @@ public class SignableImplementation implements Signable {
         stmt.setInt(4, 1);
         stmt.setInt(5, 1);
         stmt.setString(6, user.getPassword());
-        
-        try{
+
+        try {
             stmt.executeUpdate();
-        }catch(Exception ex){
+        } catch (Exception ex) {
             throw new ExistUserException();
         }
-        
+
         /*if( == 0){
             
         }
-*/
-       
-        if(stmt != null){
+         */
+        if (stmt != null) {
             stmt.close();
         }
         returnConnection(con);
-        
 
     }
 

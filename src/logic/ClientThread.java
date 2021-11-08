@@ -53,9 +53,14 @@ public class ClientThread extends Thread {
             switch (data.getMessage()) {
                 case SIGN_IN:
                     user = signable.signIn(data.getUser());
-                    //Se queda esperando
-                    data.setUser(user);
-                    data.setMessage(MessageEnum.SIGN_IN_OK);
+                    //Se queda esperando                  
+                    if(user==null){
+                        throw new UserNotExistException();
+                    }else if(!user.getPassword().equals(data.getUser().getPassword())){
+                        throw new IncorrectPasswordException();                  
+                    }else{ data.setUser(user);
+                        data.setMessage(MessageEnum.SIGN_IN_OK);
+                    }
                     break;
                 case SIGN_UP:
                     signable.signUp(data.getUser());
