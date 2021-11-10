@@ -14,6 +14,7 @@ import exceptions.UserNotExistException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
@@ -34,6 +35,7 @@ public class SignableImplementation implements Signable {
     /**
      *
      * @param user
+     * @return
      * @throws UserNotExistException
      * @throws IncorrectPasswordException
      * @throws ConnectionErrorException
@@ -61,31 +63,31 @@ public class SignableImplementation implements Signable {
             userAux.setPrivilege(UserPrivilege.values()[auxPrivilege]);
             userAux.setPassword(rs.getString("userPassword"));
             userAux.setLastPasswordChange(rs.getTimestamp("lastPasswordChange").toLocalDateTime());
+            signInCountAndInsert(userAux,rs,stmt);
         }
         rs.close();
 
-        stmt = con.prepareStatement(SIGNINCOUNT);
-        stmt.setInt(1, userAux.getId());
-        rs = stmt.executeQuery();
-        if (rs.next()) {
-            if (rs.getInt("count(*)") >= 2) {
-                stmt = con.prepareStatement(SIGNINSELECTMINDATE, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-                stmt.setInt(1, userAux.getId());
-                rs = stmt.executeQuery();
-                rs.first();
-                rs.updateTimestamp("lastSignIn", Timestamp.valueOf(LocalDateTime.now()));
-                rs.updateRow();
-            } else {
-                stmt = con.prepareStatement(SIGNININSERT);
-                stmt.setInt(1, userAux.getId());
-                stmt.executeUpdate();
-            }
-        } else {
-            stmt = con.prepareStatement(SIGNININSERT);
-            stmt.setInt(1, userAux.getId());
-            stmt.executeUpdate();
-        }
-
+        /*stmt = con.prepareStatement(SIGNINCOUNT);
+stmt.setInt(1, userAux.getId());
+rs = stmt.executeQuery();
+if (rs.next()) {
+if (rs.getInt("count(*)") >= 2) {
+stmt = con.prepareStatement(SIGNINSELECTMINDATE, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+stmt.setInt(1, userAux.getId());
+rs = stmt.executeQuery();
+rs.first();
+rs.updateTimestamp("lastSignIn", Timestamp.valueOf(LocalDateTime.now()));
+rs.updateRow();
+} else {
+stmt = con.prepareStatement(SIGNININSERT);
+stmt.setInt(1, userAux.getId());
+stmt.executeUpdate();
+}
+} else {
+stmt = con.prepareStatement(SIGNININSERT);
+stmt.setInt(1, userAux.getId());
+stmt.executeUpdate();
+}*/
         if (stmt != null) {
             stmt.close();
         }
@@ -103,7 +105,7 @@ public class SignableImplementation implements Signable {
      */
     @Override
     public void signUp(User user) throws ExistUserException, ConnectionErrorException, Exception {
-    //final String SIGNUP = "INSERT INTO user (id,login,email,fullName,enumStatus,enumPrivilege,userPassword,lastPasswordChange) values (default,?,?,?,?,?,?,now())";
+        //final String SIGNUP = "INSERT INTO user (id,login,email,fullName,enumStatus,enumPrivilege,userPassword,lastPasswordChange) values (default,?,?,?,?,?,?,now())";
         con = getConnection();
 
         stmt = con.prepareStatement(SIGNUP);
@@ -131,4 +133,30 @@ public class SignableImplementation implements Signable {
 
     }
 
+    private void signInCountAndInsert(User userAux, ResultSet rs, PreparedStatement stmt) throws SQLException {
+    
+        stmt = con.prepareStatement(SIGNINCOUNT);
+        stmt.setInt(1, userAux.getId());
+        rs = stmt.executeQuery();
+        if (rs.next()) {
+            if (rs.getInt("count(*)") >= 2) {
+                stmt = con.prepareStatement(SIGNINSELECTMINDATE, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+                stmt.setInt(1, userAux.getId());
+                rs = stmt.executeQuery();
+                rs.first();
+                rs.updateTimestamp("lastSignIn", Timestamp.valueOf(LocalDateTime.now()));
+                rs.updateRow();
+            } else {
+                stmt = con.prepareStatement(SIGNININSERT);
+                stmt.setInt(1, userAux.getId());
+                stmt.executeUpdate();
+            }
+        } else {
+            stmt = con.prepareStatement(SIGNININSERT);
+            stmt.setInt(1, userAux.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+   
 }
