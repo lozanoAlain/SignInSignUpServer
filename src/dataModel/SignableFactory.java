@@ -6,12 +6,21 @@
 package dataModel;
 
 /**
+ * Class for the Signable Factory
  *
- * @author 
+ * @author Alain Lozano, Ilia Consuegra
  */
 public class SignableFactory {
 
-    public Signable getSignable() throws Exception{
+    /**
+     * Method that get the signable implementation, and returns the initialized
+     * interface.
+     *
+     * @return signable the interface
+     * @throws Exception launched in case there is an error implementating the
+     * interface
+     */
+    public Signable getSignable() throws Exception {
         Signable signable;
         signable = new SignableImplementation();
         return signable;

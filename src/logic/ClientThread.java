@@ -24,6 +24,7 @@ import static serverApplication.ServerApplication.decrement;
 import static serverApplication.ServerApplication.increment;
 
 /**
+ * This class is used to create a thread and it is used for each connection
  *
  * @author Alain Lozano, Ilia Consuegra
  */
@@ -33,11 +34,21 @@ public class ClientThread extends Thread {
     private Socket sc = null;
     private DataEncapsulation data;
 
+    /**
+     *
+     * @param sc
+     */
     public ClientThread(Socket sc) {
         this.sc = sc;
     }
 
+    /**
+     * This method is used to to the Sign In and Sign Up and it completes the
+     * dataEncapsulation with the message received from the exceptions and the
+     * user received from the SiganbleImplementation
+     */
     public void run() {
+
         ObjectInputStream ois = null;
         ObjectOutputStream oos = null;
         try {
@@ -49,16 +60,17 @@ public class ClientThread extends Thread {
             data = (DataEncapsulation) ois.readObject();
 
             increment();
-            User user = null;
+            User user = null;           
             switch (data.getMessage()) {
                 case SIGN_IN:
                     user = signable.signIn(data.getUser());
                     //Se queda esperando                  
-                    if(user==null){
+                    if (user == null) {
                         throw new UserNotExistException();
-                    }else if(!user.getPassword().equals(data.getUser().getPassword())){
-                        throw new IncorrectPasswordException();                  
-                    }else{ data.setUser(user);
+                    } else if (!user.getPassword().equals(data.getUser().getPassword())) {
+                        throw new IncorrectPasswordException();
+                    } else {
+                        data.setUser(user);
                         data.setMessage(MessageEnum.SIGN_IN_OK);
                     }
                     break;
@@ -73,25 +85,25 @@ public class ClientThread extends Thread {
 
         } catch (IOException ex) {
             data.setMessage(MessageEnum.CONNECTION_ERROR);
-            logger.warning(ex.getMessage());
+            logger.severe(ex.getMessage());
         } catch (ClassNotFoundException ex) {
             data.setMessage(MessageEnum.CONNECTION_ERROR);
-            logger.warning(ex.getMessage());
+            logger.severe(ex.getMessage());
         } catch (IncorrectPasswordException ex) {
             data.setMessage(MessageEnum.SIGN_IN_ERROR_PASSWORD);
-            logger.warning(ex.getMessage());
+            logger.severe(ex.getMessage());
         } catch (ConnectionErrorException ex) {
             data.setMessage(MessageEnum.CONNECTION_ERROR);
-            logger.warning(ex.getMessage());
+            logger.severe(ex.getMessage());
         } catch (ExistUserException ex) {
             data.setMessage(MessageEnum.SIGN_UP_ERROR_USER);
-            logger.warning(ex.getMessage());
+            logger.severe(ex.getMessage());
         } catch (UserNotExistException ex) {
             data.setMessage(MessageEnum.SIGN_IN_ERROR_USER);
-            logger.warning(ex.getMessage());
+            logger.severe(ex.getMessage());
         } catch (Exception ex) {
             data.setMessage(MessageEnum.CONNECTION_ERROR);
-            logger.warning(ex.getMessage());
+            logger.severe(ex.getMessage());
         }
         try {
             oos = new ObjectOutputStream(sc.getOutputStream());
@@ -102,7 +114,7 @@ public class ClientThread extends Thread {
             sc.close();
             this.interrupt();
         } catch (IOException ex) {
-            Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex.getMessage());
+            logger.severe(ex.getMessage());
         }
 
     }

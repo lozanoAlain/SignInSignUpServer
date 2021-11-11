@@ -18,14 +18,19 @@ import java.util.logging.Logger;
 import logic.ClientThread;
 
 /**
+ * This class if for the initialization of the server an the control of the
+ * maximum connections permitted
  *
- * @author 2dam
+ * @author Ilia Consuegra, Alain Lozano
  */
 public class ServerApplication {
 
     private static int accepted = 0;
 
     /**
+     * The method that accepts the connections between the server and the client
+     * and created the threads
+     *
      * @param args the command line arguments
      */
     public static void main(String[] args) {
@@ -59,10 +64,17 @@ public class ServerApplication {
 
     }
 
+    /**
+     * The method to increment the number of connections accepted
+     */
+
     public static synchronized void increment() {
         accepted++;
     }
 
+    /**
+     * The method to decrement the number of connections accepted
+     */
     public static synchronized void decrement() {
         accepted--;
     }
