@@ -19,8 +19,9 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 /**
+ * This class is the implementation class of the Signable interface
  *
- * @author Usuario
+ * @author Alain Lozano, Ilia Consuegra
  */
 public class SignableImplementation implements Signable {
 
@@ -33,12 +34,17 @@ public class SignableImplementation implements Signable {
     private PreparedStatement stmt;
 
     /**
+     * This method is for the Sign In case, gets the connection and inserts the
+     * user data in the userAux
      *
-     * @param user
-     * @return
-     * @throws UserNotExistException
-     * @throws IncorrectPasswordException
-     * @throws ConnectionErrorException
+     * @param user The user that is received from the Sing In window
+     * @return The user we return completed from the database
+     * @throws UserNotExistException Is thrown in case that the user do not
+     * exist in the database
+     * @throws IncorrectPasswordException Is thrown in case that the password
+     * for the user is incorrect
+     * @throws ConnectionErrorException Is thrown in case there is an error in
+     * the connection
      */
     @Override
     public User signIn(User user) throws UserNotExistException, IncorrectPasswordException, ConnectionErrorException, Exception {
@@ -63,31 +69,10 @@ public class SignableImplementation implements Signable {
             userAux.setPrivilege(UserPrivilege.values()[auxPrivilege]);
             userAux.setPassword(rs.getString("userPassword"));
             userAux.setLastPasswordChange(rs.getTimestamp("lastPasswordChange").toLocalDateTime());
-            signInCountAndInsert(userAux,rs,stmt);
+            signInCountAndInsert(userAux, rs, stmt);
         }
         rs.close();
 
-        /*stmt = con.prepareStatement(SIGNINCOUNT);
-stmt.setInt(1, userAux.getId());
-rs = stmt.executeQuery();
-if (rs.next()) {
-if (rs.getInt("count(*)") >= 2) {
-stmt = con.prepareStatement(SIGNINSELECTMINDATE, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-stmt.setInt(1, userAux.getId());
-rs = stmt.executeQuery();
-rs.first();
-rs.updateTimestamp("lastSignIn", Timestamp.valueOf(LocalDateTime.now()));
-rs.updateRow();
-} else {
-stmt = con.prepareStatement(SIGNININSERT);
-stmt.setInt(1, userAux.getId());
-stmt.executeUpdate();
-}
-} else {
-stmt = con.prepareStatement(SIGNININSERT);
-stmt.setInt(1, userAux.getId());
-stmt.executeUpdate();
-}*/
         if (stmt != null) {
             stmt.close();
         }
@@ -98,43 +83,54 @@ stmt.executeUpdate();
     }
 
     /**
+     * This method is for the Sign Up case, gets the connection and inserts the
+     * user data in the database
      *
-     * @param user
-     * @throws ExistUserException
-     * @throws ConnectionErrorException
+     * @param user The user that is received from the Sing Up window
+     * @throws ExistUserException Is thrown in case that the user exists in the
+     * database
+     * @throws ConnectionErrorException Is thrown in case there is an error in
+     * the connection
      */
     @Override
-    public void signUp(User user) throws ExistUserException, ConnectionErrorException, Exception {
+    public void signUp(User user) throws ExistUserException, ConnectionErrorException {
         //final String SIGNUP = "INSERT INTO user (id,login,email,fullName,enumStatus,enumPrivilege,userPassword,lastPasswordChange) values (default,?,?,?,?,?,?,now())";
-        con = getConnection();
-
-        stmt = con.prepareStatement(SIGNUP);
-        stmt.setString(1, user.getLogin());
-        stmt.setString(2, user.getEmail());
-        stmt.setString(3, user.getFullName());
-        stmt.setInt(4, 1);
-        stmt.setInt(5, 1);
-        stmt.setString(6, user.getPassword());
-
         try {
-            stmt.executeUpdate();
-        } catch (Exception ex) {
-            throw new ExistUserException();
-        }
+            con = getConnection();
 
-        /*if( == 0){
-            
-        }
-         */
-        if (stmt != null) {
-            stmt.close();
+            stmt = con.prepareStatement(SIGNUP);
+            stmt.setString(1, user.getLogin());
+            stmt.setString(2, user.getEmail());
+            stmt.setString(3, user.getFullName());
+            stmt.setInt(4, 1);
+            stmt.setInt(5, 1);
+            stmt.setString(6, user.getPassword());
+
+            stmt.executeUpdate();
+
+            if (stmt != null) {
+                stmt.close();
+            }
+        } catch (SQLException ex) {
+            throw new ExistUserException();
         }
         returnConnection(con);
 
     }
 
+    /**
+     * This method is used to control the last sign in connection in the
+     * database
+     *
+     * @param userAux The user is received completed from the database
+     * @param rs The Resulset is used to received data from the database
+     * @param stmt The PreparedStatement is used to prepare the consult to the
+     * database
+     * @throws SQLException Is thrown in case that there is an error in the
+     * connection with the database
+     */
     private void signInCountAndInsert(User userAux, ResultSet rs, PreparedStatement stmt) throws SQLException {
-    
+
         stmt = con.prepareStatement(SIGNINCOUNT);
         stmt.setInt(1, userAux.getId());
         rs = stmt.executeQuery();
@@ -158,5 +154,4 @@ stmt.executeUpdate();
         }
     }
 
-   
 }
