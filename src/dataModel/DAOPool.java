@@ -19,11 +19,11 @@ import java.util.ResourceBundle;
  * @author Alain Lozano, Ilia Consuegra
  */
 public class DAOPool {
-
+//The parameters for the connection are taken from the configuration file
     private static String url = ResourceBundle.getBundle("dataModel.ServerConfiguration").getString("URL");
     private static String user = ResourceBundle.getBundle("dataModel.ServerConfiguration").getString("DBUser");
     private static String pass = ResourceBundle.getBundle("dataModel.ServerConfiguration").getString("DBPass");
-
+//An ArrayList to manage the connections 
     private static ArrayList<Connection> pool = new ArrayList<>(Integer.valueOf(ResourceBundle.getBundle("dataModel.ServerConfiguration").getString("maxServerConnections")));
 
     /**
@@ -36,10 +36,13 @@ public class DAOPool {
      */
     public static synchronized Connection getConnection() throws SQLException {
         Connection connection = null;
+        //If there are no connection available the first connection is created
         if (pool.size() == 0) {
             pool.add(DriverManager.getConnection(url, user, pass));
         }
+        //It gets the last connection available
         connection = pool.get(pool.size() - 1);
+        //The connection is sended to the thread and is removed from the pool
         pool.remove(connection);
 
         return connection;
@@ -53,6 +56,7 @@ public class DAOPool {
      */
 
     public static synchronized void returnConnection(Connection connection) {
+        //The retuned connection is added to the pool
         pool.add(connection);
     }
 
