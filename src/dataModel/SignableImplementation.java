@@ -17,6 +17,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ResourceBundle;
 
 /**
  * This class is the implementation class of the Signable interface
@@ -25,10 +26,15 @@ import java.time.LocalDateTime;
  */
 public class SignableImplementation implements Signable {
 
+    //Statement to select all date from a user specified
     final String SIGNIN = "SELECT * FROM user WHERE login = ?";
+    //Statement to insert a user in the user table
     final String SIGNUP = "INSERT INTO user (id,login,email,fullName,enumStatus,enumPrivilege,userPassword,lastPasswordChange) values (default,?,?,?,?,?,?,now())";
+    //Statement to insert a sign in in signIn table
     final String SIGNININSERT = "INSERT INTO signin (lastSignIn,userId,signinId) values (now(),?,default)";
+    //Statement to count the specified user´s connections
     final String SIGNINCOUNT = "SELECT COUNT(*) FROM signin WHERE userId=?";
+    //Statement to select the first connection from the signIn table 
     final String SIGNINSELECTMINDATE = "SELECT * FROM signin WHERE lastSignIn=(Select min(lastSignIn) from signin WHERE userId=?)";
     private Connection con;
     private PreparedStatement stmt;
@@ -48,7 +54,7 @@ public class SignableImplementation implements Signable {
      */
     @Override
     public User signIn(User user) throws UserNotExistException, IncorrectPasswordException, ConnectionErrorException, Exception {
-        //    final String SIGNIN = "SELECT * FROM user WHERE login = ?";
+        //final String SIGNIN = "SELECT * FROM user WHERE login = ?";
         ResultSet rs = null;
         con = getConnection();
 
@@ -57,6 +63,7 @@ public class SignableImplementation implements Signable {
 
         rs = stmt.executeQuery();
         User userAux = null;
+        // All fields received from the database are entered into an auxiliary user.
         while (rs.next()) {
             userAux = new User();
             userAux.setId(rs.getInt("id"));
@@ -97,6 +104,7 @@ public class SignableImplementation implements Signable {
         //final String SIGNUP = "INSERT INTO user (id,login,email,fullName,enumStatus,enumPrivilege,userPassword,lastPasswordChange) values (default,?,?,?,?,?,?,now())";
         try {
             con = getConnection();
+            // All fields received from the client side are entered in an preparedStatement.
 
             stmt = con.prepareStatement(SIGNUP);
             stmt.setString(1, user.getLogin());
@@ -130,12 +138,16 @@ public class SignableImplementation implements Signable {
      * connection with the database
      */
     private void signInCountAndInsert(User userAux, ResultSet rs, PreparedStatement stmt) throws SQLException {
+        //final String SIGNINCOUNT = "SELECT COUNT(*) FROM signin WHERE userId=?";
+        //final String SIGNINSELECTMINDATE = "SELECT * FROM signin WHERE lastSignIn=(Select min(lastSignIn) from signin WHERE userId=?)";
+        //final String SIGNININSERT = "INSERT INTO signin (lastSignIn,userId,signinId) values (now(),?,default)";
 
         stmt = con.prepareStatement(SIGNINCOUNT);
         stmt.setInt(1, userAux.getId());
         rs = stmt.executeQuery();
+        //Counts the connections of a user and if more than 10, deletes the last connection.
         if (rs.next()) {
-            if (rs.getInt("count(*)") >= 2) {
+            if (rs.getInt("count(*)") >= 10) {
                 stmt = con.prepareStatement(SIGNINSELECTMINDATE, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
                 stmt.setInt(1, userAux.getId());
                 rs = stmt.executeQuery();

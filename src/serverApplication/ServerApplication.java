@@ -37,12 +37,14 @@ public class ServerApplication {
         try {
             // TODO code application logic here
             Socket sc = null;
+            //The parameters for the socket are taken from the configuration file
 
             final int maxAccept = Integer.valueOf(ResourceBundle.getBundle("dataModel.ServerConfiguration").getString("maxServerConnections"));
             String port = (ResourceBundle.getBundle("dataModel.ServerConfiguration").getString("Port"));
             ServerSocket ss = new ServerSocket(Integer.valueOf(port));
 
             Logger.getLogger("serverApplication").info("Escuchando por el puerto: " + port);
+            //The connections are accepted and the threads are initialized
             while (true) {
                 sc = ss.accept();
                 if (accepted < maxAccept) {

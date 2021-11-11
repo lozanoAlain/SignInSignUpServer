@@ -55,12 +55,12 @@ public class ClientThread extends Thread {
             ois = new ObjectInputStream(sc.getInputStream());
             SignableFactory signableFactory = new SignableFactory();
             Signable signable = signableFactory.getSignable();
-            //  DatatEncapsulation data = new DataEncapsulation();
 
             data = (DataEncapsulation) ois.readObject();
 
             increment();
-            User user = null;           
+            User user = null;
+            //A dataEncapsulation class is received and the message is read to choose the requested method.
             switch (data.getMessage()) {
                 case SIGN_IN:
                     user = signable.signIn(data.getUser());
@@ -82,7 +82,7 @@ public class ClientThread extends Thread {
                 default:
                     break;
             }
-
+            //Depending on the exception a message is entered in the dataEncapsulation and sended to the client.
         } catch (IOException ex) {
             data.setMessage(MessageEnum.CONNECTION_ERROR);
             logger.severe(ex.getMessage());
@@ -109,6 +109,7 @@ public class ClientThread extends Thread {
             oos = new ObjectOutputStream(sc.getOutputStream());
             oos.writeObject(data);
             decrement();
+            //The thread is interrupted and the socket, ObjectOutputStream and ObjectInputStream are closed.
             ois.close();
             oos.close();
             sc.close();
