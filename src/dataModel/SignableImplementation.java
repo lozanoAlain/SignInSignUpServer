@@ -17,7 +17,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ResourceBundle;
+import java.util.logging.Logger;
 
 /**
  * This class is the implementation class of the Signable interface
@@ -25,7 +25,7 @@ import java.util.ResourceBundle;
  * @author Alain Lozano, Ilia Consuegra
  */
 public class SignableImplementation implements Signable {
-
+     
     //Statement to select all date from a user specified
     final String SIGNIN = "SELECT * FROM user WHERE login = ?";
     //Statement to insert a user in the user table

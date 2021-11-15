@@ -74,10 +74,12 @@ public class ClientThread extends Thread {
                         data.setMessage(MessageEnum.SIGN_IN_OK);
                     }
                     break;
-                case SIGN_UP:
+                case SIGN_UP: 
+                    String nombre=data.getUser().getFullName();
                     signable.signUp(data.getUser());
                     data.setUser(user);
-                    data.setMessage(MessageEnum.SIGN_UP_OK);
+                    data.setMessage(MessageEnum.SIGN_UP_OK);                  
+                    logger.info("Usuario: "+ nombre+" registrado correctamente.");
                     break;
                 default:
                     break;
